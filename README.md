@@ -1,20 +1,20 @@
-# ⚡ VoltBreaker
+# 🛡️ AegisBreaker
 
 > **High-throughput, zero-dependency, mathematical sliding-window Circuit Breaker and Fault Tolerance engine for modern TypeScript & JavaScript runtimes.**
 
-[![CI](https://github.com/yourusername/voltbreaker/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/voltbreaker/actions)
+[![CI](https://github.com/latryee/aegis-breaker/actions/workflows/ci.yml/badge.svg)](https://github.com/latryee/aegis-breaker/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](https://www.npmjs.com/package/voltbreaker)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](https://www.npmjs.com/package/aegis-breaker)
 [![Throughput](https://img.shields.io/badge/throughput-2.7M%2B%20ops%2Fsec-brightgreen.svg)](#benchmarks)
 
 ---
 
-## 🌟 Why VoltBreaker?
+## 🌟 Why AegisBreaker?
 
 Most Node.js / JavaScript circuit breaker libraries are either abandoned, bloated with heavy dependency trees, or rely on naive in-memory counters that fail to account for continuous time windows, slow-call latency degradation, or thundering herds upon recovery.
 
-**VoltBreaker** is built with senior systems-engineering rigor:
+**AegisBreaker** is built with senior systems-engineering rigor:
 - **Zero Runtime Dependencies**: Ultra-lean, zero attack surface, sub-microsecond invocation overhead (~400ns).
 - **Leaping-Bucket Sliding Windows**: Pre-allocated circular ring buffers and time-sliced epoch buckets operating in $O(1)$ constant time with bounded $O(1)$ memory.
 - **Dual Trip Thresholds**: Trips on both **Failure Rate** ($> X\%$) and **Slow-Call (P99 Latency)** degradation ($> Y\%$).
@@ -55,13 +55,13 @@ Most Node.js / JavaScript circuit breaker libraries are either abandoned, bloate
 ## 📦 Installation
 
 ```bash
-npm install voltbreaker
+npm install aegis-breaker
 # or
-pnpm add voltbreaker
+pnpm add aegis-breaker
 # or
-yarn add voltbreaker
+yarn add aegis-breaker
 # or
-bun add voltbreaker
+bun add aegis-breaker
 ```
 
 ---
@@ -71,7 +71,7 @@ bun add voltbreaker
 ### 1. Functional Execution
 
 ```ts
-import { CircuitBreaker } from 'voltbreaker';
+import { CircuitBreaker } from 'aegis-breaker';
 
 const breaker = new CircuitBreaker({
   name: 'payment-gateway',
@@ -104,7 +104,7 @@ const result = await breaker.execute(
 ### 2. Method Decorator (`@Protect`)
 
 ```ts
-import { Protect } from 'voltbreaker';
+import { Protect } from 'aegis-breaker';
 
 class OrderService {
   @Protect({
@@ -122,7 +122,7 @@ class OrderService {
 ### 3. Function Wrapper
 
 ```ts
-import { withCircuitBreaker, CircuitBreaker } from 'voltbreaker';
+import { withCircuitBreaker, CircuitBreaker } from 'aegis-breaker';
 
 const breaker = new CircuitBreaker({ name: 'user-service' });
 
@@ -137,7 +137,7 @@ const user = await getUser('user-123');
 
 ## 📊 Live Interactive Dashboard Simulation
 
-VoltBreaker includes a terminal traffic simulator showcasing dynamic fault injection, circuit trips, fast-fail rejection, backoff cooldown, and automatic self-healing.
+AegisBreaker includes a terminal traffic simulator showcasing dynamic fault injection, circuit trips, fast-fail rejection, backoff cooldown, and automatic self-healing.
 
 ```bash
 npm run demo
@@ -145,7 +145,7 @@ npm run demo
 
 ```
 ╔═══════════════════════════════════════════════════════════════════╗
-║             ⚡ VOLTBREAKER RESILIENCE ENGINE DEMO ⚡             ║
+║             🛡️ AEGISBREAKER RESILIENCE ENGINE DEMO 🛡️             ║
 ║   Mathematical Sliding-Window & Adaptive Circuit Breaking Demo   ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
@@ -188,7 +188,7 @@ Microbenchmarks measured on Intel Core / AMD Ryzen (Node.js 24, V8 Engine):
 | Benchmark Scenario | Throughput (ops/sec) | Latency (avg) | Memory Overhead |
 | :--- | :---: | :---: | :---: |
 | **Baseline Raw Async Function** | **9.50M** ops/s | 112 ns | 0 B |
-| **VoltBreaker `.execute()` (CLOSED State)** | **2.78M** ops/s | 415 ns | $O(1)$ bounded |
+| **AegisBreaker `.execute()` (CLOSED State)** | **2.78M** ops/s | 415 ns | $O(1)$ bounded |
 | **CountSlidingWindow `recordSuccess()`** | **19.36M** ops/s | 39 ns | 0 allocations |
 | **TimeSlidingWindow `recordSuccess()`** | **10.10M** ops/s | 88 ns | 0 allocations |
 
@@ -196,7 +196,7 @@ Microbenchmarks measured on Intel Core / AMD Ryzen (Node.js 24, V8 Engine):
 
 ## 🔍 Feature Comparison
 
-| Feature | **VoltBreaker** | Opossum | Cockatiel | Resilience4j (Java) |
+| Feature | **AegisBreaker** | Opossum | Cockatiel | Resilience4j (Java) |
 | :--- | :---: | :---: | :---: | :---: |
 | **Zero External Runtime Dependencies** | ✅ Yes | ❌ (events, etc.) | ❌ | ✅ Yes |
 | **Count-Based Sliding Window** | ✅ $O(1)$ RingBuffer | ❌ | ❌ | ✅ |
@@ -232,7 +232,7 @@ const breaker = new CircuitBreaker({
 ### 2. Prometheus / OpenMetrics Scraping
 
 ```ts
-import { CircuitBreaker } from 'voltbreaker';
+import { CircuitBreaker } from 'aegis-breaker';
 
 const breaker = new CircuitBreaker({ name: 'billing_service' });
 
@@ -309,4 +309,4 @@ npm run typecheck
 
 ## 📄 License
 
-MIT © [Lati](LICENSE)
+MIT © [latryee](LICENSE)
