@@ -38,7 +38,7 @@ Most Node.js / JavaScript circuit breaker libraries are either abandoned, bloate
 - **Adaptive Jittered Probes**: Bounded trial permit pool in `HALF_OPEN` with Exponential Backoff + Full / Decorrelated Jitter to prevent downstream cascades.
 - **Full Observability**: Real-time snapshot metrics, typed lifecycle event bus, and native **Prometheus / OpenMetrics** exposition format.
 - **Framework Native**: Zero-boilerplate middleware adapters for **Express.js** and **Fastify**.
-- **Universal Runtime**: Seamlessly runs on Node.js ($\ge 18$), Bun, Deno, Cloudflare Workers, and modern browsers. Dual ESM + CommonJS builds with strict `.d.ts` declaration maps.
+- **Universal Runtime**: Seamlessly runs on Node.js ($\ge 20$), Bun, Deno, Cloudflare Workers, and modern browsers. Dual ESM + CommonJS builds with strict `.d.ts` declaration maps.
 
 ---
 
