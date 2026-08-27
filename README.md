@@ -1,12 +1,29 @@
+<div align="center">
+
+![AegisBreaker Banner](assets/aegis-banner.svg)
+
 # 🛡️ AegisBreaker
 
-> **High-throughput, zero-dependency, mathematical sliding-window Circuit Breaker and Fault Tolerance engine for modern TypeScript & JavaScript runtimes.**
+**High-throughput, zero-dependency, mathematical sliding-window Circuit Breaker and Fault Tolerance engine for modern TypeScript & JavaScript runtimes.**
 
 [![CI](https://github.com/latryee/aegis-breaker/actions/workflows/ci.yml/badge.svg)](https://github.com/latryee/aegis-breaker/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](https://www.npmjs.com/package/aegis-breaker)
-[![Throughput](https://img.shields.io/badge/throughput-2.7M%2B%20ops%2Fsec-brightgreen.svg)](#benchmarks)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
+[![Throughput](https://img.shields.io/badge/throughput-2.78M%2B%20ops%2Fsec-brightgreen.svg)](#-benchmarks)
+
+</div>
+
+---
+
+## 📺 Live Terminal Simulation
+
+![Terminal Demo](assets/terminal-demo.svg)
+
+Run the interactive visual simulation in your terminal:
+```bash
+npm run demo
+```
 
 ---
 
@@ -20,6 +37,7 @@ Most Node.js / JavaScript circuit breaker libraries are either abandoned, bloate
 - **Dual Trip Thresholds**: Trips on both **Failure Rate** ($> X\%$) and **Slow-Call (P99 Latency)** degradation ($> Y\%$).
 - **Adaptive Jittered Probes**: Bounded trial permit pool in `HALF_OPEN` with Exponential Backoff + Full / Decorrelated Jitter to prevent downstream cascades.
 - **Full Observability**: Real-time snapshot metrics, typed lifecycle event bus, and native **Prometheus / OpenMetrics** exposition format.
+- **Framework Native**: Zero-boilerplate middleware adapters for **Express.js** and **Fastify**.
 - **Universal Runtime**: Seamlessly runs on Node.js ($\ge 18$), Bun, Deno, Cloudflare Workers, and modern browsers. Dual ESM + CommonJS builds with strict `.d.ts` declaration maps.
 
 ---
@@ -55,13 +73,11 @@ Most Node.js / JavaScript circuit breaker libraries are either abandoned, bloate
 ## 📦 Installation
 
 ```bash
+# Via NPM
 npm install aegis-breaker
-# or
-pnpm add aegis-breaker
-# or
-yarn add aegis-breaker
-# or
-bun add aegis-breaker
+
+# Or directly from GitHub
+npm install github:latryee/aegis-breaker
 ```
 
 ---
@@ -119,71 +135,61 @@ class OrderService {
 }
 ```
 
-### 3. Function Wrapper
+### 3. Real-World Express.js Middleware
 
 ```ts
-import { withCircuitBreaker, CircuitBreaker } from 'aegis-breaker';
+import express from 'express';
+import { createExpressMiddleware } from 'aegis-breaker';
 
-const breaker = new CircuitBreaker({ name: 'user-service' });
+const app = express();
 
-const getUser = withCircuitBreaker(breaker, async (userId: string) => {
-  return await db.users.findById(userId);
+// Guard route with automatic 503 fast-fail and Retry-After headers
+const checkoutGuard = createExpressMiddleware({
+  breakerOptions: {
+    name: 'checkout-api',
+    failureRateThreshold: 50,
+    waitDurationInOpenStateMs: 5000,
+  },
+  includeHeaders: true, // Emits 'X-Circuit-Breaker-State' & 'Retry-After'
 });
 
-const user = await getUser('user-123');
+app.post('/api/checkout', checkoutGuard, async (req, res) => {
+  const receipt = await processPayment(req.body);
+  res.json(receipt);
+});
 ```
 
----
+### 4. Fastify Plugin Hook
 
-## 📊 Live Interactive Dashboard Simulation
+```ts
+import Fastify from 'fastify';
+import { createFastifyHook } from 'aegis-breaker';
 
-AegisBreaker includes a terminal traffic simulator showcasing dynamic fault injection, circuit trips, fast-fail rejection, backoff cooldown, and automatic self-healing.
+const fastify = Fastify();
+const userGuard = createFastifyHook({
+  breakerOptions: { name: 'user-service', failureRateThreshold: 50 },
+});
 
-```bash
-npm run demo
-```
-
-```
-╔═══════════════════════════════════════════════════════════════════╗
-║             🛡️ AEGISBREAKER RESILIENCE ENGINE DEMO 🛡️             ║
-║   Mathematical Sliding-Window & Adaptive Circuit Breaking Demo   ║
-╚═══════════════════════════════════════════════════════════════════╝
-
-▶ PHASE 1: Healthy Steady State (0% error rate, low latency)
-  [Call #1] ✔ SUCCESS | State:  CLOSED 🟢 
-  [Call #2] ✔ SUCCESS | State:  CLOSED 🟢 
-
-▶ PHASE 2: Upstream Outage Injected (100% error rate)
-  [Call #6] ⛑ FALLBACK ACTIVATED: Stored in durable fallback cache (Error)
-  ➔ [STATE CHANGE]  CLOSED 🟢  ➔  OPEN 🔴   (Reason: FAILURE_RATE_EXCEEDED)
-
-▶ PHASE 3: Circuit is OPEN (Shedding upstream load instantly with 0ms latency)
-  ⛔ [FAST FAIL] Fast-rejected in 0ms to protect system. Retry probe in 1892ms
-
-▶ PHASE 4: Cooldown period running... Upstream service self-healing
-  Waiting for waitDurationInOpenStateMs (2.1s)...
-
-▶ PHASE 5: Trial Probes in HALF_OPEN State
-  ➔ [STATE CHANGE]  OPEN 🔴  ➔  HALF-OPEN 🟡   (Reason: WAIT_DURATION_EXPIRED)
-  [Probe #13] ✔ PROBE SUCCESS | Current State:  HALF-OPEN 🟡 
-  ➔ [STATE CHANGE]  HALF-OPEN 🟡  ➔  CLOSED 🟢   (Reason: HALF_OPEN_PROBE_SUCCEEDED)
-
-═══════════════════════════════════════════════════════════════════
-📊 FINAL TELEMETRY SNAPSHOT:
-  Current State      :  CLOSED 🟢 
-  Total Active Calls : 1
-  Successful Calls   : 1
-  Failed Calls       : 0
-  Fast-Fail Rejects  : 2
-  Failure Rate       : [░░░░░░░░░░░░░░░] 0.0%
-═══════════════════════════════════════════════════════════════════
+fastify.get('/users/:id', { preHandler: userGuard }, async (request, reply) => {
+  return await fetchUser(request.params.id);
+});
 ```
 
 ---
 
 ## 📈 Benchmarks
 
-Microbenchmarks measured on Intel Core / AMD Ryzen (Node.js 24, V8 Engine):
+Benchmark script is open-source and included in the repository: [`bench/benchmark.ts`](bench/benchmark.ts).
+
+### How to reproduce benchmarks locally:
+```bash
+git clone https://github.com/latryee/aegis-breaker.git
+cd aegis-breaker
+npm install
+npm run bench
+```
+
+Measured with `tinybench` on Node.js 24 (V8 Engine):
 
 | Benchmark Scenario | Throughput (ops/sec) | Latency (avg) | Memory Overhead |
 | :--- | :---: | :---: | :---: |
@@ -204,32 +210,13 @@ Microbenchmarks measured on Intel Core / AMD Ryzen (Node.js 24, V8 Engine):
 | **Slow Call / Latency Degradation Tripping** | ✅ Yes | ❌ | ❌ | ✅ |
 | **Adaptive Jittered Backoff (Full & Decorrelated)** | ✅ Yes | ❌ Fixed | ⚠️ Basic Exponential | ⚠️ |
 | **Half-Open Permit Quorum Pool** | ✅ Bounded | ⚠️ Single Request | ⚠️ Basic | ✅ Bounded |
+| **Express & Fastify Native Adapters** | ✅ Built-in | ❌ | ❌ | ❌ |
 | **Prometheus / OpenMetrics Exporter** | ✅ Native built-in | ❌ External Plugin | ❌ | ✅ Micrometer |
 | **Sub-Microsecond Execution Overhead** | ✅ ~400ns | ❌ ~5-15µs | ❌ ~2-5µs | ✅ |
 
 ---
 
-## 🛠 Advanced Usage
-
-### 1. HTTP Status Code Filtering
-
-In microservices, client errors (`400 Bad Request`, `404 Not Found`, `422 Unprocessable Entity`) should NOT trip the circuit breaker. Only infrastructure outages (`500`, `502`, `503`, `504`) or connection timeouts should.
-
-```ts
-const breaker = new CircuitBreaker({
-  name: 'catalog-service',
-  minimumNumberOfCalls: 20,
-  failureRateThreshold: 50,
-  // Ignore 4xx client errors
-  ignoreException: (err: any) => err.statusCode >= 400 && err.statusCode < 500,
-  // Trip on 5xx server faults
-  recordException: (err: any) => err.statusCode >= 500,
-  // Trip on HTTP response objects with error status codes
-  recordResult: (res: any) => res?.status >= 500,
-});
-```
-
-### 2. Prometheus / OpenMetrics Scraping
+## 🛠 Prometheus / OpenMetrics Scraping
 
 ```ts
 import { CircuitBreaker } from 'aegis-breaker';
@@ -245,7 +232,7 @@ app.get('/metrics', (req, res) => {
 });
 ```
 
-Sample Prometheus metrics output:
+Sample scrapable output:
 ```promql
 # HELP circuit_breaker_state Current state of the circuit breaker (0=CLOSED, 1=HALF_OPEN, 2=OPEN, 3=FORCED_OPEN, 4=FORCED_CLOSED, 5=DISABLED)
 # TYPE circuit_breaker_state gauge
@@ -295,7 +282,7 @@ circuit_breaker_latency_ms{name="billing_service",cluster="us-east-1",environmen
 ## 🧪 Testing
 
 ```bash
-# Run unit & concurrency test suites
+# Run unit, integration & concurrency test suites
 npm run test
 
 # Run tests with coverage
