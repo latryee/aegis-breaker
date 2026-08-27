@@ -1,6 +1,6 @@
 /**
  * @file index.ts
- * @description VoltBreaker - Production-Grade Circuit Breaker & Resilience SDK.
+ * @description AegisBreaker - Production-Grade Circuit Breaker & Resilience SDK.
  */
 
 // Core Engine & Errors
@@ -61,3 +61,7 @@ export type { ICircuitBreakerStorage } from './storage/storage.interface.js';
 // Wrappers & Decorators
 export { Protect } from './wrappers/decorators.js';
 export { executeWithFallback, withCircuitBreaker } from './wrappers/functional.js';
+
+// Framework Integrations (Express & Fastify)
+export { createExpressMiddleware, type ExpressMiddlewareOptions } from './integrations/express.js';
+export { createFastifyHook, type FastifyPluginOptions } from './integrations/fastify.js';
